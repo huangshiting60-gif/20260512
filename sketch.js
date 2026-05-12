@@ -24,8 +24,8 @@ function gotFaces(results) {
 }
 
 function draw() {
-  // 1. 背景改為馬卡龍粉藍色，與黃色的長頸鹿形成鮮明對比
-  background(204, 240, 255); 
+  // 1. 背景改為馬卡龍奶黃色
+  background(255, 253, 208); 
   
   // 2. 繪製緩緩飄過的馬卡龍色雲朵
   drawClouds();
@@ -33,15 +33,12 @@ function draw() {
   // 3. 繪製背景彩虹 (動態浮動)
   drawRainbow();
 
-  // 4. 繪製動態叢林植物 (左右輕微搖擺)
-  drawJungle();
-
-  // 5. 繪製緩慢移動的動物
-  drawAnimatedAnimals(); // 長頸鹿
+  // 4. 繪製緩慢移動的動物 (小兔子)
+  drawAnimatedAnimals();
 
   // 繪製學號
   push();
-  fill(100, 100, 150); // 深馬卡龍藍文字，讓學號在淺色背景更清楚
+  fill(150, 120, 50); // 深咖啡色文字，搭配奶黃背景較協調
   textSize(36);
   textStyle(BOLD);
   textAlign(CENTER, TOP);
@@ -56,6 +53,9 @@ function draw() {
   
   // 左右顛倒處理 (鏡像)
   scale(-1, 1);
+  
+  // 設定影像繪製模式為中心，確保影像顯示在畫布中央
+  imageMode(CENTER);
   
   // 計算影像大小 (畫布寬高的 50%)
   let imgW = width * 0.5;
@@ -107,11 +107,11 @@ function drawRainbow() {
 // 繪製緩緩飄過的馬卡龍色雲朵
 function drawClouds() {
   noStroke();
-  // 雲朵顏色改為純白色
+  // 雲朵顏色改為純白色，增加一點透明度更有質感
   let cloudColors = [
-    color(255, 255, 255, 220), 
-    color(255, 255, 255, 220), 
-    color(255, 255, 255, 220)
+    color(255, 255, 255, 230), 
+    color(255, 255, 255, 230), 
+    color(255, 255, 255, 230)
   ];
 
   // 雲朵 1
@@ -140,11 +140,10 @@ function drawJungle() {
 
 // 繪製動畫動物
 function drawAnimatedAnimals() {
-  // 長頸鹿從左往右走
-  let gX = (frameCount * 1.2) % (width + 200) - 100;
-  // 增加輕微的上下晃動感
-  let gY = height * 0.75 + sin(frameCount * 0.1) * 5;
-  drawCuteGiraffe(gX, gY);
+  // 兔子從左往右平移，不再跳躍
+  let bX = (frameCount * 2.5) % (width + 200) - 100;
+  let bY = height * 0.88;
+  drawCuteBunny(bX, bY);
 }
 
 // 精細版的長頸鹿形狀
@@ -152,70 +151,102 @@ function drawCuteGiraffe(x, y) {
   push();
   translate(x, y);
   scale(0.7); // 稍微縮小整體比例，讓它看起來更可愛
-  noStroke();
-  fill(255, 240, 180); // 更柔和的馬卡龍黃色
-  
-  // 身體 (更圓潤)
-  ellipse(0, 0, 100, 60); 
-  
-  // 腿 (稍微粗短)
-  rect(-35, 20, 15, 40, 5);     // 後左腿
-  rect(20, 20, 15, 40, 5);      // 前左腿
-  rect(-20, 20, 15, 40, 5);     // 後右腿 (部分遮擋)
-  rect(35, 20, 15, 40, 5);      // 前右腿 (部分遮擋)
+  // 身體 (馬卡龍粉)
+  fill(255, 209, 220); 
+  ellipse(0, 0, 80, 65);
 
-  // 脖子 (依然細長，但稍微粗一點)
-  rect(30, -80, 20, 90, 10); 
-  
-  // 頭部 (更圓潤)
-  ellipse(45, -90, 50, 40);  
-  
-  // 耳朵 (小巧可愛)
-  fill(255, 240, 180);
-  ellipse(30, -105, 10, 15); // 左耳
-  ellipse(60, -105, 10, 15); // 右耳
-  
-  // 角 (小巧圓潤)
-  fill(210, 180, 140); // 棕色
-  ellipse(35, -115, 8, 10);  
-  ellipse(55, -115, 8, 10);  
-
-  // 斑點 (更柔和，大小不一)
-  fill(210, 180, 140, 180); // 稍微不透明的淡咖啡色
-  circle(-20, -10, 15);
-  circle(10, 5, 18);
-  circle(35, -50, 10);
-  circle(50, -70, 12);
-  circle(0, 20, 10);
-
-  // 眼睛與閃光
-  noStroke();
-  fill(0);
-  circle(35, -95, 8); // 左眼
-  circle(55, -95, 8); // 右眼
+  // 尾巴 (白色圓球)
   fill(255);
-  circle(37, -97, 3); // 左眼神光點
-  circle(57, -97, 3); // 右眼神光點
-  
-  // 簡單的嘴巴
-  fill(255, 150, 150, 150); // 改用可愛的粉紅色嘴巴
-  arc(45, -80, 20, 10, 0, PI, CHORD); // 簡單的弧形嘴巴
+  circle(-40, 15, 18);
 
-  // 尾巴 (更蓬鬆)
-  stroke(210, 180, 140);
-  strokeWeight(4);
-  line(-50, 10, -65, 30);
+  // 頭部
+  fill(255, 209, 220);
+  ellipse(35, -15, 55, 50);
+
+  // 耳朵 (長長的馬卡龍粉)
+  ellipse(25, -55, 18, 55);
+  ellipse(45, -55, 18, 55);
+  
+  // 內耳 (淺淺的粉白色)
+  fill(255, 235, 240);
+  ellipse(25, -55, 10, 40);
+  ellipse(45, -55, 10, 40);
+
+  // 兩顆有神的眼睛
+  fill(0);
+  circle(33, -22, 6); // 左眼
+  circle(57, -22, 6); // 右眼
+  // 眼神光
+  fill(255);
+  circle(34, -23, 2);
+  circle(58, -23, 2);
+
+  // 鼻子 (可愛的深粉紅)
+  fill(255, 150, 170);
+  triangle(45, -10, 51, -10, 48, -5);
+
+  // 腮紅 (馬卡龍紅)
+  fill(255, 180, 190, 150);
+  circle(25, -10, 12);
+  circle(65, -10, 12);
+
+  pop();
+}
+
+// 繪製馬卡龍粉紅小兔子
+function drawCuteBunny(x, y) {
+  push();
+  translate(x, y);
+  scale(0.8);
   noStroke();
-  fill(210, 180, 140);
-  ellipse(-65, 35, 10, 15); // 尾巴末端的絨毛
+  
+  // 身體 (馬卡龍粉)
+  fill(255, 209, 220); 
+  ellipse(0, 0, 80, 65);
+
+  // 尾巴 (白色圓球)
+  fill(255);
+  circle(-40, 15, 18);
+
+  // 頭部
+  fill(255, 209, 220);
+  ellipse(35, -15, 55, 50);
+
+  // 耳朵 (長長的馬卡龍粉)
+  ellipse(25, -55, 18, 55);
+  ellipse(45, -55, 18, 55);
+  
+  // 內耳 (淺淺的粉白色)
+  fill(255, 235, 240);
+  ellipse(25, -55, 10, 40);
+  ellipse(45, -55, 10, 40);
+
+  // 兩顆有神的眼睛
+  fill(0);
+  circle(33, -22, 6); // 左眼
+  circle(57, -22, 6); // 右眼
+  // 眼神光
+  fill(255);
+  circle(34, -23, 2);
+  circle(58, -23, 2);
+
+  // 鼻子 (可愛的深粉紅)
+  fill(255, 150, 170);
+  triangle(45, -10, 51, -10, 48, -5);
+
+  // 腮紅 (馬卡龍紅)
+  fill(255, 180, 190, 150);
+  circle(25, -10, 12);
+  circle(65, -10, 12);
+
   pop();
 }
 
 function drawEarring(kp, imgW, imgH) {
   if (kp) {
     // 將偵測點從影片原始尺寸映射到畫布上影像顯示的大小範圍
-    let x = map(kp.x, 0, capture.width, -imgW / 2, imgW / 2);
-    let y = map(kp.y, 0, capture.height, -imgH / 2, imgH / 2);
+    let x = map(kp.x, 0, capture.width || 640, -imgW / 2, imgW / 2);
+    let y = map(kp.y, 0, capture.height || 480, -imgH / 2, imgH / 2);
 
     fill(255, 255, 0); // 黃色
     noStroke();
