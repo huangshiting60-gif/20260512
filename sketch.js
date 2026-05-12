@@ -8,13 +8,13 @@ function preload() {
 }
 
 function setup() {
-  // 步驟一：產生全螢幕畫布
+  // 產生全螢幕畫布
   createCanvas(windowWidth, windowHeight);
   // 擷取攝影機影像
   capture = createCapture(VIDEO);
   capture.size(640, 480); // 設定固定輸入尺寸以利座標映射
   capture.hide(); // 隱藏 HTML 預設的 video 物件
-  
+
   // 開始持續偵測臉部
   faceMesh.detectStart(capture, gotFaces);
 }
@@ -35,9 +35,9 @@ function draw() {
     line(0, y, width, y);
   }
 
-  // 設定影像繪製基準點為中心
+  // 設定影像繪製基準點為中心 (置中)
   imageMode(CENTER);
-  
+
   // 計算影像大小 (畫布寬高的 50%)
   let imgW = width * 0.5;
   let imgH = height * 0.5;
@@ -49,7 +49,7 @@ function draw() {
   // 左右顛倒處理 (鏡像)
   scale(-1, 1);
   
-  // 繪製影像 (因為 translate 過，座標使用 0, 0)
+  // 繪製攝影機影像
   image(capture, 0, 0, imgW, imgH);
 
   // 辨識耳垂並畫出三個黃色圓圈 (耳環效果)
@@ -75,7 +75,7 @@ function drawEarring(kp, imgW, imgH) {
     noStroke();
     for (let j = 0; j < 3; j++) {
       // 由耳垂位置往下顯示三個圓圈，形成耳環樣式
-      circle(x, y + (j * 15), 10);
+      circle(x, y + (j * (imgH * 0.05)), imgH * 0.02);
     }
   }
 }
