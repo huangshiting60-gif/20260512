@@ -1,10 +1,22 @@
 let capture;
 let faceMesh;
 let faces = [];
+let handPose;
+let hands = [];
+let earringImages = []; // 用於儲存 5 張耳環圖片
+let currentGesture = 0; // 儲存手指伸出的數量
 
 function preload() {
   // 載入 ml5.faceMesh 模型
   faceMesh = ml5.faceMesh();
+  // 載入 ml5.handPose 模型
+  handPose = ml5.handPose();
+  // 載入五種手勢對應的耳環圖片
+  earringImages[0] = loadImage('picture/acc1_ring.png');
+  earringImages[1] = loadImage('picture/acc2_pearl.png');
+  earringImages[2] = loadImage('picture/acc3_tassel.png');
+  earringImages[3] = loadImage('picture/acc4_jade.png');
+  earringImages[4] = loadImage('picture/acc5_phoenix.png');
 }
 
 function setup() {
@@ -17,10 +29,52 @@ function setup() {
 
   // 開始持續偵測臉部
   faceMesh.detectStart(capture, gotFaces);
+  // 開始持續偵測手部
+  handPose.detectStart(capture, gotHands);
 }
 
 function gotFaces(results) {
   faces = results;
+}
+
+function gotHands(results) {
+  hands = results;
+  if (hands.length > 0) {
+    currentGesture = countExtendedFingers(hands[0].landmarks);
+  } else {
+    currentGesture = 0;
+  }
+}
+
+// 判斷有多少手指伸出
+function countExtendedFingers(landmarks) {
+  let extendedFingers = 0;
+  const thumbTip = landmarks[4];
+  const thumbIP = landmarks[3]; // Intermediate Phalanx
+  const thumbMCP = landmarks[2]; // Metacarpophalangeal
+  const wrist = landmarks[0];
+
+  // 判斷拇指：如果拇指尖的Y座標比它的IP關節Y座標小，且X座標在手腕外側 (簡化判斷)
+  // 這裡簡化為拇指尖Y座標比MCP Y座標小，並假設拇指是向上的
+  if (thumbTip.y < thumbIP.y && thumbTip.y < thumbMCP.y) {
+    extendedFingers++;
+  }
+
+  // 判斷其他四指 (食指、中指、無名指、小指)
+  // 每個手指的關鍵點索引：
+  // 食指: tip=8, dip=7, pip=6, mcp=5
+  // 中指: tip=12, dip=11, pip=10, mcp=9
+  // 無名指: tip=16, dip=15, pip=14, mcp=13
+  // 小指: tip=20, dip=19, pip=18, mcp=17
+  const fingerTips = [8, 12, 16, 20];
+  const fingerMCPs = [5, 9, 13, 17];
+
+  for (let i = 0; i < fingerTips.length; i++) {
+    if (landmarks[fingerTips[i]].y < landmarks[fingerMCPs[i]].y) { // 尖端Y座標小於MCP Y座標表示伸出
+      extendedFingers++;
+    }
+  }
+  return extendedFingers;
 }
 
 function draw() {
@@ -46,6 +100,15 @@ function draw() {
   text("414730175", width / 2, 30);
   pop();
 
+  // 繪製目前偵測到的手指數量
+  push();
+  fill(150, 120, 50); // 使用與學號相同的深咖啡色
+  textSize(24);
+  textStyle(BOLD);
+  textAlign(LEFT, TOP);
+  text("偵測到手指數量: " + currentGesture, 20, 20);
+  pop();
+
   // 繪製攝影機影像
   push();
   // 將原點移動到畫布中心
@@ -69,8 +132,14 @@ function draw() {
     let rightLobe = face.keypoints[215];
     let leftLobe = face.keypoints[435];
 
-    drawEarring(rightLobe, imgW, imgH);
-    drawEarring(leftLobe, imgW, imgH);
+    // 根據手勢選擇耳環圖片，沒偵測到手勢時預設顯示第一張 (索引 0)
+    let selectedEarringImage = earringImages[0];
+    if (currentGesture > 0 && currentGesture <= earringImages.length) {
+      selectedEarringImage = earringImages[currentGesture - 1];
+    }
+
+    drawEarring(rightLobe, imgW, imgH, selectedEarringImage);
+    drawEarring(leftLobe, imgW, imgH, selectedEarringImage);
   }
   pop();
 }
@@ -242,22 +311,34 @@ function drawCuteBunny(x, y) {
   pop();
 }
 
-function drawEarring(kp, imgW, imgH) {
-  if (kp) {
-    // 將偵測點從影片原始尺寸映射到畫布上影像顯示的大小範圍
-    let x = map(kp.x, 0, capture.width || 640, -imgW / 2, imgW / 2);
-    let y = map(kp.y, 0, capture.height || 480, -imgH / 2, imgH / 2);
-
-    fill(255, 255, 0); // 黃色
-    noStroke();
-    for (let j = 0; j < 3; j++) {
-      // 由耳垂位置往下顯示三個圓圈，形成耳環樣式
-      circle(x, y + (j * (imgH * 0.05)), imgH * 0.02);
-    }
-  }
-}
-
 // 當視窗大小改變時，重新調整畫布大小
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+}
+
+// 繪製耳環的輔助函式
+function drawEarring(kp, imgW, imgH, selectedEarringImage) {
+  if (kp && selectedEarringImage) {
+    // 將偵測點映射到中央影像區域 (ml5 預設輸入通常為 640x480)
+    let x = map(kp.x, 0, 640, -imgW / 2, imgW / 2);
+    let y = map(kp.y, 0, 480, -imgH / 2, imgH / 2);
+
+    // 設定耳環圖片大小比率 (影像高度的 8%)
+    let earringSize = imgH * 0.08; 
+
+    // 計算比率位移：
+    // 往上：減去影像高度的 3%
+    let moveUp = imgH * 0.03;
+    // 往外：根據 x 座標正負判斷（在目前的鏡像座標系下，x > 0 是視覺右側，x < 0 是視覺左側）
+    let moveOut = imgW * 0.02;
+    
+    let offsetX = (x > 0 ? moveOut : -moveOut);
+    let offsetY = -moveUp;
+
+    push();
+    imageMode(CENTER);
+    // 考慮到 scale(-1, 1) 的影響，直接在座標上加上偏移量
+    image(selectedEarringImage, x + offsetX, y + offsetY, earringSize, earringSize);
+    pop();
+  }
 }
