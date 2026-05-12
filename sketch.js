@@ -102,11 +102,16 @@ function draw() {
 
   // 繪製目前偵測到的手指數量
   push();
-  fill(150, 120, 50); // 使用與學號相同的深咖啡色
+  // 在左下角繪製一個半透明底色，防止文字與背景打架
+  noStroke();
+  fill(255, 253, 208, 200); 
+  rect(10, height - 50, 220, 40, 10);
+
+  fill(150, 120, 50); 
   textSize(24);
   textStyle(BOLD);
-  textAlign(LEFT, TOP);
-  text("偵測到手指數量: " + currentGesture, 20, 20);
+  textAlign(LEFT, CENTER);
+  text("偵測到手指數量: " + currentGesture, 25, height - 30);
   pop();
 
   // 繪製攝影機影像
